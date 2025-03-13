@@ -1,0 +1,29 @@
+# Docker Compose 정의 파일
+# Dockerfile을 호출하여 Docker 컨테이너를 빌드하는 역할
+
+services:
+  demo-app:
+    build: .
+    volumes:
+      - .dockervenv:/src/.venv # 로컬 가상환경(.venv)을 컨테이너 내부에 마운트
+      - .:/src # 현재 프로젝트 폴더를 컨테이너 내부 /src 경로에 마운트
+    ports:
+      - "8000:8000" # 호스트(로컬) 8000번 포트를 docker의 컨테이너 8000번 포트와 연결
+    environment:
+      - WATCHFILES_FORCE_POLLING=true # 핫 리로드(파일 변경 사항을 감지)를 위해 필요한 환경 변수
+
+  db:
+    image: mysql:8.0 # MySQL은 오라클 라이센스에 따르므로, 실습 시 오픈소스 MariaDB를 권고
+    platform: linux/x86_64 # 애플 실리콘 맥(m1, m2칩 등)의 경우 필요
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: '1' # root 계정을 비밀번호 없이 생성(1은 true의 의미)
+      MYSQL_DATABASE: 'demo' # demo 데이터베이스를 초기 데이터베이스로 설정
+      TZ: 'Asia/Seoul' # TimeZone 설정
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 33306:3306 # 호스트 머신의 33306번 포트를 docker의 3306 포트에 연결
+
+volumes:
+  mysql_data:
